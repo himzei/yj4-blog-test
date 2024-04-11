@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  username   String    @unique
+  email      String?   @unique
+  password   String?
+  phone      String?   @unique
+  kakao_id   String?   @unique
+  avatar     String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt()
+  posts      Post[]
+  comments   Comment[]
+  likes      Like[]
+}
+
+model Post {
+  id         Int       @id @default(autoincrement())
+  title      String?
+  content    String?
+  photo      String?
+  views      Int       @default(0)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt()
+  writer     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  comments   Comment[]
+  likes      Like[]
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  payload    String
+  writer     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt()
+  userId     Int
+  postId     Int
+}
+
+model Like {
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt()
+  userId     Int
+  postId     Int
+
+  @@id(name: "id", [userId, postId])
+}
